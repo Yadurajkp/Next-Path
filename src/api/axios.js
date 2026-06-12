@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-import axios from 'axios';
 
 const api = axios.create({
-  // Keep requests relative so the mock interceptor handles them.
   baseURL: '',
   timeout: 10000,
   headers: {
@@ -11,7 +9,6 @@ const api = axios.create({
   },
 });
 
-export default api;
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 const MOCK_USER = {
