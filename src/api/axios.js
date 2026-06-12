@@ -173,36 +173,22 @@ api.interceptors.response.use(undefined, async (error) => {
   const method = config.method?.toLowerCase();
 
   // Auth
-  if (url.includes('/auth/login') && method === 'post') {
-  const { email, password } = JSON.parse(
-    config.data || '{}'
+ 
+if (url.includes('/auth/login') && method === 'post') {
+  const body = JSON.parse(config.data || '{}');
+
+  const storedUser = JSON.parse(
+    localStorage.getItem('np_user') || 'null'
   );
 
-  if (email && password) {
-    const isAdmin = email.includes('admin');
-
-    const loggedUser = {
-      id: Date.now().toString(),
-      name: email.split('@')[0],
-      email,
-      role: isAdmin ? 'admin' : 'student',
-      avatar: null,
-      education: [],
-      skills: [],
-      interests: [],
-      careerGoals: '',
-      joinedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(
-      'np_user',
-      JSON.stringify(loggedUser)
-    );
-
+  if (
+    storedUser &&
+    storedUser.email === body.email
+  ) {
     return {
       data: {
         token: 'mock_jwt_token_xyz',
-        user: loggedUser,
+        user: storedUser,
       },
     };
   }
@@ -210,11 +196,13 @@ api.interceptors.response.use(undefined, async (error) => {
   return Promise.reject({
     response: {
       data: {
-        message: 'Invalid credentials',
+        message: 'Invalid email or password',
       },
     },
   });
 }
+
+
   if (url.includes('/auth/register') && method === 'post') {
     return { data: { token: 'mock_jwt_token_xyz', user: { ...MOCK_USER, ...JSON.parse(config.data || '{}') } } };
   }
