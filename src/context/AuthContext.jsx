@@ -1,4 +1,4 @@
-```jsx
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 import { ENDPOINTS } from '../api/endpoints';
@@ -184,4 +184,4 @@ export const useAuth = () => {
 
   return context;
 };
-```
+
