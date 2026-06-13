@@ -159,7 +159,15 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('np_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (
+    token &&
+    token !== 'undefined' &&
+    token !== 'null'
+  ) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   config._mock = true;
   return config;
 });
@@ -177,29 +185,36 @@ api.interceptors.response.use(undefined, async (error) => {
 if (url.includes('/auth/login') && method === 'post') {
   const body = JSON.parse(config.data || '{}');
 
-  const storedUser = JSON.parse(
-    localStorage.getItem('np_user') || 'null'
+  const user = {
+    id: Date.now().toString(),
+    name: body.email.split('@')[0],
+    email: body.email,
+    role: body.email.startsWith('admin@') ? 'admin' : 'student',
+    avatar: null,
+    education: [],
+    skills: [],
+    interests: [],
+    careerGoals: '',
+    joinedAt: new Date().toISOString(),
+  };
+
+  localStorage.setItem(
+    'np_user',
+    JSON.stringify(user)
   );
 
-  if (
-    storedUser &&
-    storedUser.email === body.email
-  ) {
-    return {
-      data: {
-        token: 'mock_jwt_token_xyz',
-        user: storedUser,
-      },
-    };
-  }
+  localStorage.setItem(
+    'np_token',
+    'mock_jwt_token_xyz'
+  );
 
-  return Promise.reject({
-    response: {
-      data: {
-        message: 'Invalid email or password',
-      },
+  return {
+    data: {
+      token: 'mock_jwt_token_xyz',
+      user,
     },
-  });
+    status: 200,
+  };
 }
 
 
