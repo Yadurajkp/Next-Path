@@ -1,3 +1,4 @@
+```jsx
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 import { ENDPOINTS } from '../api/endpoints';
@@ -22,10 +23,21 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      // Safely restore user from localStorage
+      if (
+        storedUser &&
+        storedUser !== 'undefined' &&
+        storedUser !== 'null'
+      ) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (err) {
+          console.error('Invalid stored user:', err);
+          localStorage.removeItem('np_user');
+        }
       }
 
+      // Refresh latest profile from backend
       try {
         const response = await api.get(ENDPOINTS.PROFILE);
 
@@ -64,14 +76,11 @@ export function AuthProvider({ children }) {
     const authToken = response.data.token;
     const loggedInUser = response.data.user;
 
-    localStorage.setItem(
-      'np_token',
-      authToken
-    );
+    localStorage.setItem('np_token', authToken);
 
     localStorage.setItem(
       'np_user',
-      JSON.stringify(loggedInUser)
+      JSON.stringify(loggedInUser ?? null)
     );
 
     setUser(loggedInUser);
@@ -88,14 +97,11 @@ export function AuthProvider({ children }) {
     const authToken = response.data.token;
     const registeredUser = response.data.user;
 
-    localStorage.setItem(
-      'np_token',
-      authToken
-    );
+    localStorage.setItem('np_token', authToken);
 
     localStorage.setItem(
       'np_user',
-      JSON.stringify(registeredUser)
+      JSON.stringify(registeredUser ?? null)
     );
 
     setUser(registeredUser);
@@ -113,7 +119,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updates) => {
     setUser((currentUser) => {
       const updatedUser = {
-        ...currentUser,
+        ...(currentUser || {}),
         ...updates,
       };
 
@@ -132,16 +138,20 @@ export function AuthProvider({ children }) {
         ENDPOINTS.PROFILE
       );
 
-      setUser(response.data);
+      if (response.data) {
+        setUser(response.data);
 
-      localStorage.setItem(
-        'np_user',
-        JSON.stringify(response.data)
-      );
+        localStorage.setItem(
+          'np_user',
+          JSON.stringify(response.data)
+        );
 
-      return response.data;
+        return response.data;
+      }
+
+      return null;
     } catch (error) {
-      console.error(error);
+      console.error('Refresh user failed:', error);
       return null;
     }
   };
@@ -174,3 +184,4 @@ export const useAuth = () => {
 
   return context;
 };
+```
